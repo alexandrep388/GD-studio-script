@@ -1,0 +1,16 @@
+-- 🔒 Restriction : Grow a Garden uniquement
+if game.PlaceId ~= 126884695634066 then return end
+
+-- ✅ Chargement de WindUI (dernière version)
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+
+local Window = WindUI:CreateWindow({
+    Title = "Mon Script",
+    Icon = "sprout",
+    Author = "by moi",
+    Folder = "MonScript",
+    Size = UDim2.fromOffset(580, 460),
+    Transparent = true,
+    Theme = "Dark",
+})
+Window:Init()
