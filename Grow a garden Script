@@ -1,14 +1,39 @@
 -- 🔒 Restriction : Grow a Garden uniquement
 if game.PlaceId ~= 126884695634066 then return end
 
--- ✅ Chargement de WindUI (dernière version)
+-- ✅ Chargement de WindUI
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 
+-- 🔔 Système de notifications de chargement
+local function notify(title, content, icon, duration)
+    WindUI:Notify({
+        Title = title,
+        Content = content,
+        Icon = icon,
+        Duration = duration or 3,
+        CanClose = false,
+    })
+end
+
+-- Étapes de chargement
+notify("Chargement...", "Initialisation du script...", "loader", 2)
+task.wait(1)
+
+notify("Connexion...", "Vérification du jeu...", "shield-check", 2)
+task.wait(1)
+
+notify("Modules...", "Chargement des modules...", "package", 2)
+task.wait(1)
+
+notify("✅ Prêt !", "Le script est chargé avec succès !", "check-circle", 4)
+task.wait(1)
+
+-- ✅ Création de la fenêtre
 local Window = WindUI:CreateWindow({
-    Title = "Grow a garden hub",
+    Title = "Mon Script",
     Icon = "sprout",
-    Author = "by alexandrep388",
-    Folder = "Grow a garden",
+    Author = "by moi",
+    Folder = "MonScript",
     Size = UDim2.fromOffset(580, 460),
     Transparent = true,
     Theme = "Dark",
