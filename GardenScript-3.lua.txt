@@ -55,7 +55,7 @@ local Window = WindUI:CreateWindow({
             {
                 Type      = "junkiedev",
                 ServiceId = "Garden Script - GD Studio",
-                ApiKey    = "baab1b33-83eb-4116-a7ae-cfbdefb61f64",
+                ApiKey    = "238a8d32-4141-484e-949c-70d5516049bb",
                 Provider  = "Grow a garden Script/ checkpoint 1",
             },
         },
