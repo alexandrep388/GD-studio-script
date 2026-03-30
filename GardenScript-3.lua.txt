@@ -47,7 +47,7 @@ local Window = WindUI:CreateWindow({
     Theme = "Emerald",
     Resizable = true,
     Background = "rbxassetid://93634870569326",
-    BackgroundImageTransparency = 0,
+    BackgroundImageTransparency = 0,4
 
     KeySystem = {
     Note = "Get your free key — resets every 24h | GD Studio",
