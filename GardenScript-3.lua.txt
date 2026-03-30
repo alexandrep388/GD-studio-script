@@ -59,6 +59,7 @@ local Window = WindUI:CreateWindow({
         },
     },
 },
+})
 Window:Tag({ Title = "v1.1", Icon = "tag", Color = Color3.fromRGB(22, 163, 74), Radius = 4 })
 Window:Tag({ Title = "Grow a Garden", Icon = "sprout", Color = Color3.fromRGB(21, 128, 61), Radius = 4 })
 
