@@ -558,6 +558,109 @@ Toggles.AutoBrainrotUpg:OnChanged(function(state)
 end)
 
 -- =====================
+-- TAB: Stats
+-- =====================
+local StatsTab   = Window:AddTab("Stats", "chart-column")
+local StatsLeft  = StatsTab:AddLeftGroupbox("Gains", "trending-up")
+local StatsRight = StatsTab:AddRightGroupbox("Classement", "trophy")
+
+-- Labels dynamiques
+local LabelCash    = StatsLeft:AddLabel("💰 Cash : ...")
+local LabelSpeed   = StatsLeft:AddLabel("⚡ Speed : ...")
+local LabelPerSec  = StatsLeft:AddLabel("📈 Par seconde : ...")
+local LabelPerMin  = StatsLeft:AddLabel("📈 Par minute : ...")
+local LabelPerHour = StatsLeft:AddLabel("📈 Par heure : ...")
+local LabelPerDay  = StatsLeft:AddLabel("📈 Par jour : ...")
+local LabelRank    = StatsRight:AddLabel("🏆 Rang région : ...")
+local LabelSession = StatsRight:AddLabel("⏱ Session : ...")
+local LabelGained  = StatsRight:AddLabel("💵 Gagné (session) : ...")
+
+-- Suffix formatter
+local function formatNum(n)
+    local suffixes = {
+        {1e33, "Dc"}, {1e30, "No"}, {1e27, "Oc"}, {1e24, "Sp"},
+        {1e21, "Sx"}, {1e18, "Qi"}, {1e15, "Qa"}, {1e12, "T"},
+        {1e9,  "B"},  {1e6,  "M"},  {1e3,  "K"}
+    }
+    for _, s in ipairs(suffixes) do
+        if n >= s[1] then
+            return string.format("%.2f%s", n / s[1], s[2])
+        end
+    end
+    return tostring(math.floor(n))
+end
+
+-- Tracking
+local cashHistory = {}
+local sessionStart = tick()
+local cashAtStart = player.leaderstats and player.leaderstats:FindFirstChild("Cash") 
+    and player.leaderstats.Cash.Value or 0
+
+task.spawn(function()
+    while true do
+        task.wait(1)
+        local ls = player.leaderstats
+        if not ls then continue end
+
+        local cashStat = ls:FindFirstChild("Cash")
+        local speedStat = ls:FindFirstChild("Speed")
+        local now = tick()
+        local cashNow = cashStat and cashStat.Value or 0
+
+        -- Historique des 10 dernières secondes
+        table.insert(cashHistory, { t = now, v = cashNow })
+        while #cashHistory > 10 do
+            table.remove(cashHistory, 1)
+        end
+
+        -- Calcul per/sec sur les 10 dernières secondes
+        local perSec = 0
+        if #cashHistory >= 2 then
+            local oldest = cashHistory[1]
+            local newest = cashHistory[#cashHistory]
+            local dt = newest.t - oldest.t
+            if dt > 0 then
+                perSec = (newest.v - oldest.v) / dt
+            end
+        end
+
+        -- Session
+        local sessionSecs = math.floor(now - sessionStart)
+        local h = math.floor(sessionSecs / 3600)
+        local m = math.floor((sessionSecs % 3600) / 60)
+        local s = sessionSecs % 60
+        local sessionStr = string.format("%02d:%02d:%02d", h, m, s)
+        local gained = cashNow - cashAtStart
+
+        -- Rang région
+        local rankStr = "?"
+        pcall(function()
+            local frame = player.PlayerGui
+                :WaitForChild("Effects", 1)
+                :WaitForChild("SurfaceGui", 1)
+                :WaitForChild("Frame", 1)
+                :WaitForChild("Rank", 1)
+            if frame and frame:FindFirstChild("Rank") then
+                rankStr = frame.Rank.Text
+            elseif frame then
+                rankStr = frame.Text
+            end
+        end)
+
+        -- Update labels
+        LabelCash:SetText("💰 Cash : " .. formatNum(cashNow) .. "$")
+        LabelSpeed:SetText("⚡ Speed : " .. (speedStat and speedStat.Value or "?"))
+        LabelPerSec:SetText("📈 /sec : " .. formatNum(math.max(0, perSec)) .. "$")
+        LabelPerMin:SetText("📈 /min : " .. formatNum(math.max(0, perSec * 60)) .. "$")
+        LabelPerHour:SetText("📈 /heure : " .. formatNum(math.max(0, perSec * 3600)) .. "$")
+        LabelPerDay:SetText("📈 /jour : " .. formatNum(math.max(0, perSec * 86400)) .. "$")
+        LabelRank:SetText("🏆 Rang région : " .. rankStr)
+        LabelSession:SetText("⏱ Session : " .. sessionStr)
+        LabelGained:SetText("💵 Gagné : +" .. formatNum(math.max(0, gained)) .. "$")
+    end
+end)
+
+-- =====================
 -- TAB: Settings
 -- =====================
 local SetTab   = Window:AddTab("Settings", "settings")
