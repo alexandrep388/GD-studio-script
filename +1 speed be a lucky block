@@ -143,6 +143,34 @@ local function startAutoFarm()
 end
 
 -- ═══════════════════════════════
+--  AUTO UPGRADE LOOP
+-- ═══════════════════════════════
+local upgradeConn = nil
+
+local function startAutoUpgrade()
+    if upgradeConn then upgradeConn:Disconnect() end
+    upgradeConn = RunService.Heartbeat:Connect(function()
+        if not Toggles.AutoUpgrade.Value then return end
+        local selected = Library.Options.UpgradeSlotDropdown
+            and Library.Options.UpgradeSlotDropdown.Value
+        if not selected then return end
+        for slotName, _ in pairs(selected) do
+            local slotNum = slotName:gsub("Slot ", "")
+            pcall(function()
+                local part = workspace.Bases["Base-4"]
+                    .BrainrotSpots[slotNum]
+                    .BrainrotUpgrader.UpgradePart
+                fireproximityprompt(part:FindFirstChildOfClass("ProximityPrompt"))
+            end)
+        end
+    end)
+end
+
+local function stopAutoUpgrade()
+    if upgradeConn then upgradeConn:Disconnect(); upgradeConn = nil end
+end
+
+-- ═══════════════════════════════
 --  AUTO BUY LOOP
 -- ═══════════════════════════════
 local luckyBlocks = { "Golden block", "Angel" }
@@ -260,6 +288,16 @@ BuyBox:AddToggle("AutoBuySpeed", {
     Tooltip = "Achète +1 XP Speed en boucle",
 })
 
+BuyBox:AddSlider("AutoBuySpeedDelay", {
+    Text    = "Délai Auto Buy Speed",
+    Default = 5,
+    Min     = 1,
+    Max     = 10,
+    Rounding = 0,
+    Suffix  = "s",
+    Tooltip = "1 = rapide, 5 = normal, 10 = lent",
+})
+
 BuyBox:AddToggle("AutoBuyXpMulti", {
     Text    = "Auto Buy XP Multiplier",
     Default = false,
@@ -287,6 +325,19 @@ LuckyConfigBox:AddDropdown("LuckyBlockDropdown", {
     Tooltip = "Sélectionne le block à auto-acheter",
 })
 
+LuckyConfigBox:AddDropdown("UpgradeSlotDropdown", {
+    Values = {
+        "Slot 1","Slot 2","Slot 3","Slot 4","Slot 5","Slot 6",
+        "Slot 7","Slot 8","Slot 9","Slot 10","Slot 11","Slot 12",
+        "Slot 13","Slot 14","Slot 15","Slot 16","Slot 17","Slot 18",
+        "Slot 19","Slot 20","Slot 21","Slot 22","Slot 23","Slot 24",
+    },
+    Default = 1,
+    Multi   = true,
+    Text    = "Slots à upgrader",
+    Tooltip = "Sélectionne un ou plusieurs slots",
+})
+
 -- ═══════════════════════════════
 --  TAB FARM
 -- ═══════════════════════════════
@@ -307,6 +358,15 @@ FarmBox:AddToggle("AutoFarm", {
     Tooltip  = "Farm automatique en boucle",
     Callback = function(val)
         if val then startAutoFarm() end
+    end,
+})
+
+FarmBox:AddToggle("AutoUpgrade", {
+    Text     = "Auto Upgrade Brainrot",
+    Default  = false,
+    Tooltip  = "Upgrade les slots sélectionnés en boucle",
+    Callback = function(val)
+        if val then startAutoUpgrade() else stopAutoUpgrade() end
     end,
 })
 
