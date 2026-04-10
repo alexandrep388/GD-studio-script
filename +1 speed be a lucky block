@@ -5,20 +5,33 @@ local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
 local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
 local Toggles = Library.Toggles
 
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+-- ↓ AJOUTE ICI ↓
+local Loading = Library:CreateLoading({
+    Title      = "GD Studio",
+    TotalSteps = 3,
+})
 
-local player = Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:WaitForChild("Humanoid")
-local hrp = character:WaitForChild("HumanoidRootPart")
+Loading:SetMessage("Chargement du script...")
+Loading:SetDescription("Initialisation des services...")
+task.wait(0.8)
 
-player.CharacterAdded:Connect(function(c)
-    character = c
-    humanoid = c:WaitForChild("Humanoid")
-    hrp = c:WaitForChild("HumanoidRootPart")
-end)
+Loading:SetCurrentStep(1)
+Loading:SetDescription("Connexion aux RemoteEvents...")
+task.wait(0.8)
+
+Loading:SetCurrentStep(2)
+Loading:ShowSidebarPage(true)
+Loading.Sidebar:AddLabel("Script : Lucky Block")
+Loading.Sidebar:AddLabel("Joueur : " .. game.Players.LocalPlayer.Name)
+Loading.Sidebar:AddLabel("Version : v1.0")
+task.wait(0.8)
+
+Loading:SetCurrentStep(3)
+Loading:SetDescription("Prêt !")
+task.wait(0.5)
+
+Loading:Continue() -- ferme le loader, ouvre la fenêtre principale
+-- ↑ FIN LOADING ↑
 
 -- ═══════════════════════════════
 --  KNIT HELPER
