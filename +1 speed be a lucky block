@@ -1,0 +1,249 @@
+-- Be a Lucky Block | GD Studio | Part 1
+-- Obsidian UI (correct API)
+
+local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
+local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
+local Toggles = Library.Toggles
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local hrp = character:WaitForChild("HumanoidRootPart")
+
+player.CharacterAdded:Connect(function(c)
+    character = c
+    humanoid = c:WaitForChild("Humanoid")
+    hrp = c:WaitForChild("HumanoidRootPart")
+end)
+
+-- ═══════════════════════════════
+--  KNIT HELPER
+-- ═══════════════════════════════
+local function getKnit()
+    return ReplicatedStorage
+        :WaitForChild("Packages")
+        :WaitForChild("_Index")
+        :WaitForChild("sleitnick_knit@1.7.0")
+        :WaitForChild("knit")
+        :WaitForChild("Services")
+end
+
+-- ═══════════════════════════════
+--  STATE
+-- ═══════════════════════════════
+local frozenCFrame = nil
+local speedConn    = nil
+local collectConn  = nil
+local rebirthDone  = false
+
+-- ═══════════════════════════════
+--  AUTO SPEED (run in place)
+-- ═══════════════════════════════
+local function startAutoSpeed()
+    if speedConn then speedConn:Disconnect() end
+    if not hrp then return end
+    frozenCFrame = hrp.CFrame
+    humanoid.WalkSpeed = 100
+    local dir = 1
+    speedConn = RunService.Heartbeat:Connect(function()
+        if not Toggles.AutoSpeed.Value then return end
+        if not hrp or not humanoid then return end
+        hrp.CFrame = frozenCFrame
+        humanoid:Move(Vector3.new(dir, 0, 0), false)
+        dir = -dir
+    end)
+end
+
+local function stopAutoSpeed()
+    if speedConn then speedConn:Disconnect(); speedConn = nil end
+    if humanoid then
+        humanoid.WalkSpeed = 16
+        humanoid:Move(Vector3.new(0, 0, 0))
+    end
+    frozenCFrame = nil
+end
+
+-- ═══════════════════════════════
+--  AUTO TREADMILL
+-- ═══════════════════════════════
+local function equipTreadmill()
+    local tool = player.Backpack:FindFirstChild("Treadmill")
+        or (character and character:FindFirstChild("Treadmill"))
+    if tool and humanoid then humanoid:EquipTool(tool) end
+end
+
+local function unequipTreadmill()
+    if humanoid then humanoid:UnequipTools() end
+end
+
+-- ═══════════════════════════════
+--  AUTO BUY SPEED (loop)
+-- ═══════════════════════════════
+task.spawn(function()
+    while true do
+        task.wait(0.5)
+        if Toggles.AutoBuySpeed and Toggles.AutoBuySpeed.Value then
+            local ok, knit = pcall(getKnit)
+            if not ok then continue end
+            pcall(function()
+                knit.XpBoostService.RF.RequestPurchase:InvokeServer("+1Xp")
+            end)
+            task.wait(0.1)
+            pcall(function()
+                knit.TreadmillUpgradeService.RF.RequestPurchase:InvokeServer("XpMulti")
+            end)
+            task.wait(0.1)
+            pcall(function()
+                knit.TreadmillUpgradeService.RF.RequestPurchase:InvokeServer("XpGainSpeed")
+            end)
+        end
+    end
+end)
+
+-- ═══════════════════════════════
+--  AUTO BUY LUCKY BLOCKS (loop)
+-- ═══════════════════════════════
+local luckyBlocks = { "Golden block", "Angel", "Rainbow block" }
+
+task.spawn(function()
+    while true do
+        task.wait(1)
+        if Toggles.AutoBuyLucky and Toggles.AutoBuyLucky.Value then
+            local ok, knit = pcall(getKnit)
+            if not ok then continue end
+            for _, name in ipairs(luckyBlocks) do
+                pcall(function()
+                    knit.LuckyBlockShopService.RF.RequestPurchase:InvokeServer(name)
+                end)
+                task.wait(0.2)
+            end
+        end
+    end
+end)
+
+-- ═══════════════════════════════
+--  AUTO COLLECT
+-- ═══════════════════════════════
+local function startAutoCollect()
+    if collectConn then collectConn:Disconnect() end
+    collectConn = RunService.Heartbeat:Connect(function()
+        if not Toggles.AutoCollect.Value then return end
+        if not hrp then return end
+        local bases = workspace:FindFirstChild("Bases")
+        if not bases then return end
+        for _, base in pairs(bases:GetChildren()) do
+            local spots = base:FindFirstChild("BrainrotSpots")
+            if not spots then continue end
+            for _, spot in pairs(spots:GetChildren()) do
+                local part = spot:FindFirstChild("CashCollector")
+                    and spot.CashCollector:FindFirstChild("CollectionPart")
+                if part then
+                    pcall(firetouchinterest, hrp, part, 0)
+                    pcall(firetouchinterest, hrp, part, 1)
+                end
+            end
+        end
+    end)
+end
+
+local function stopAutoCollect()
+    if collectConn then collectConn:Disconnect(); collectConn = nil end
+end
+
+-- ═══════════════════════════════
+--  OBSIDIAN WINDOW
+-- ═══════════════════════════════
+local Window = Library:CreateWindow({
+    Title = "GD Studio | Lucky Block",
+    Footer = "Alexandre",
+    Center = true,
+    AutoShow = true,
+    MobileButtonsSide = "Right",
+})
+
+local Tabs = {
+    Speed  = Window:AddTab("Speed",    "zap"),
+    Buy    = Window:AddTab("Auto Buy", "shopping-cart"),
+    Farm   = Window:AddTab("Farm",     "leaf"),
+}
+
+-- ═══════════════════════════════
+--  TAB SPEED
+-- ═══════════════════════════════
+local SpeedBox = Tabs.Speed:AddLeftGroupbox("Speed", "activity")
+
+SpeedBox:AddToggle("AutoSpeed", {
+    Text    = "Auto Speed (Run in Place)",
+    Default = false,
+    Tooltip = "Court sur place pour accumuler la vitesse",
+    Callback = function(val)
+        if val then startAutoSpeed() else stopAutoSpeed() end
+    end,
+})
+
+SpeedBox:AddToggle("AutoTreadmill", {
+    Text    = "Auto Treadmill",
+    Default = false,
+    Tooltip = "Équipe / déséquipe le Treadmill",
+    Callback = function(val)
+        if val then equipTreadmill() else unequipTreadmill() end
+    end,
+})
+
+-- ═══════════════════════════════
+--  TAB AUTO BUY
+-- ═══════════════════════════════
+local BuyBox = Tabs.Buy:AddLeftGroupbox("Upgrades Speed", "trending-up")
+
+BuyBox:AddToggle("AutoBuySpeed", {
+    Text    = "Auto Buy Speed Upgrades",
+    Default = false,
+    Tooltip = "+1 XP Speed, XP Multi, XP Gain Speed",
+})
+
+local LuckyBox = Tabs.Buy:AddRightGroupbox("Lucky Blocks", "star")
+
+LuckyBox:AddToggle("AutoBuyLucky", {
+    Text    = "Auto Buy Lucky Blocks",
+    Default = false,
+    Tooltip = "Golden → Angel → Rainbow",
+})
+
+-- ═══════════════════════════════
+--  TAB FARM
+-- ═══════════════════════════════
+local FarmBox = Tabs.Farm:AddLeftGroupbox("Collect & Rebirth", "coins")
+
+FarmBox:AddToggle("AutoCollect", {
+    Text    = "Auto Collect Cash",
+    Default = false,
+    Tooltip = "FireTouchInterest sur tous les CashCollector",
+    Callback = function(val)
+        if val then startAutoCollect() else stopAutoCollect() end
+    end,
+})
+
+FarmBox:AddButton({
+    Text    = "Auto Rebirth (Once)",
+    Tooltip = "Effectue 1 rebirth immédiatement",
+    Func = function()
+        if rebirthDone then
+            Library:Notify({ Title = "Rebirth", Description = "Déjà effectué !", Time = 3 })
+            return
+        end
+        local ok, knit = pcall(getKnit)
+        if ok then
+            pcall(function()
+                knit.RebirthService.RF.RequestRebirth:InvokeServer()
+            end)
+            rebirthDone = true
+            Library:Notify({ Title = "Rebirth", Description = "Rebirth effectué ✓", Time = 3 })
+        end
+    end,
+})
+
+print("[GD Studio] Script Part 1 chargé ✓")
