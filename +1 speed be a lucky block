@@ -197,17 +197,27 @@ SpeedBox:AddToggle("AutoTreadmill", {
 -- ═══════════════════════════════
 --  TAB AUTO BUY
 -- ═══════════════════════════════
-local BuyBox = Tabs.Buy:AddLeftGroupbox("Upgrades Speed", "trending-up")
+local BuyBox = Tabs.Buy:AddLeftGroupbox("Auto Upgrades", "trending-up")
 
 BuyBox:AddToggle("AutoBuySpeed", {
-    Text    = "Auto Buy Speed Upgrades",
+    Text    = "Auto Buy Speed (+1 XP)",
     Default = false,
-    Tooltip = "+1 XP Speed, XP Multi, XP Gain Speed",
+    Tooltip = "Achète +1 XP Speed en boucle",
 })
 
-local LuckyBox = Tabs.Buy:AddRightGroupbox("Lucky Blocks", "star")
+BuyBox:AddToggle("AutoBuyXpMulti", {
+    Text    = "Auto Buy XP Multiplier",
+    Default = false,
+    Tooltip = "Achète XpMulti en boucle",
+})
 
-LuckyBox:AddToggle("AutoBuyLucky", {
+BuyBox:AddToggle("AutoBuyXpGain", {
+    Text    = "Auto Buy XP Gain Speed",
+    Default = false,
+    Tooltip = "Achète XpGainSpeed en boucle",
+})
+
+BuyBox:AddToggle("AutoBuyLucky", {
     Text    = "Auto Buy Lucky Blocks",
     Default = false,
     Tooltip = "Golden → Angel → Rainbow",
