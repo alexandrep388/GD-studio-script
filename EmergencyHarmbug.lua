@@ -175,20 +175,22 @@ end
 --  STATE
 -- ─────────────────────────────────────────────────────────
 local S = {
-    infStamina = false,
-    antiFall   = false,
-    espHL      = true,
-    espTr      = false,
-    espNm      = false,
+    infStamina  = false,
+    antiFall    = false,
+    espHL       = true,
+    espTr       = false,
+    espNm       = false,
     esp = {
         Police=false, Prisoner=false, FireDepartment=false,
         HARS=false, TruckCompany=false,
     },
-    aimbot  = false,
-    aFov    = 150,
-    aSmooth = 5,
-    aPred   = 0,
-    aColor  = Color3.fromRGB(255, 60, 60),
+    aimbot      = false,
+    silentAim   = false,
+    aTarget     = "Head",
+    aFov        = 150,
+    aSmooth     = 5,
+    aPred       = 0,
+    aColor      = Color3.fromRGB(255, 60, 60),
 }
 
 local TEAM_COL = {
@@ -302,32 +304,81 @@ AimTab:AddSlider({
 AimTab:AddSlider({
     Name     = L.aSmth,
     Min      = 1,
-    Max      = 30,
-    Default  = 5,
-    Color    = Color3.fromRGB(52, 211, 153),
-    Increment= 1,
-    Callback = function(v) S.aSmooth=v end,
+local Window = OrionLib:MakeWindow({
+    Name          = "GD Studio  ·  Emergency Harmbug",
+    HidePremium   = true,
+    SaveConfig    = false,
+    IntroEnabled  = true,
+    IntroText     = "GD Studio",
+    IntroIcon     = "rbxassetid://4483345875",
 })
 
-AimTab:AddSlider({
-    Name     = L.aPred,
-    Min      = 0,
-    Max      = 30,
-    Default  = 0,
-    Color    = Color3.fromRGB(255, 200, 50),
-    Increment= 1,
-    Callback = function(v) S.aPred=v end,
+-- ══ TAB 1 : PRINCIPAL ═══════════════════════════════════
+local TabPrincipal = Window:MakeTab({Name="Principal", Icon="rbxassetid://4483345875", PremiumOnly=false})
+
+TabPrincipal:AddSection({Name="🌐 Language"})
+TabPrincipal:AddButton({
+    Name = L.langBtn .. LANG_FLAG[currentLang] .. " " .. currentLang,
+    Callback = cycleLang,
 })
 
-AimTab:AddColorpicker({
-    Name     = L.aCol,
-    Default  = Color3.fromRGB(255, 60, 60),
-    Callback = function(v) S.aColor=v end,
+TabPrincipal:AddSection({Name=L.secMove})
+TabPrincipal:AddToggle({
+    Name=L.infSt, Default=false,
+    Callback=function(v) S.infStamina=v sfx() Notify(L.infSt, v and L.notifOn or L.notifOff) end,
+})
+TabPrincipal:AddToggle({
+    Name=L.aFall, Default=false,
+    Callback=function(v) S.antiFall=v sfx() Notify(L.aFall, v and L.notifOn or L.notifOff) end,
 })
 
--- ─────────────────────────────────────────────────────────
---  INIT ORION
--- ─────────────────────────────────────────────────────────
+-- ══ TAB 2 : VÉHICULE ════════════════════════════════════
+local TabVehicule = Window:MakeTab({Name="Véhicule", Icon="rbxassetid://4483345875", PremiumOnly=false})
+TabVehicule:AddSection({Name="Véhicule"})
+TabVehicule:AddButton({Name="Coming Soon", Callback=function() Notify("Véhicule","Coming soon!") end})
+
+-- ══ TAB 3 : POLICE ══════════════════════════════════════
+local TabPolice = Window:MakeTab({Name="Police", Icon="rbxassetid://4483345875", PremiumOnly=false})
+TabPolice:AddSection({Name="Police ESP"})
+TabPolice:AddToggle({
+    Name=L.espPolice, Default=false,
+    Callback=function(v) S.esp.Police=v sfx() end,
+})
+TabPolice:AddSection({Name=L.secVis})
+TabPolice:AddToggle({Name=L.espHL,  Default=true,  Callback=function(v) S.espHL=v sfx() end})
+TabPolice:AddToggle({Name=L.espTr,  Default=false, Callback=function(v) S.espTr=v sfx() end})
+TabPolice:AddToggle({Name=L.espNm,  Default=false, Callback=function(v) S.espNm=v sfx() end})
+
+-- ══ TAB 4 : OTHER ═══════════════════════════════════════
+local TabOther = Window:MakeTab({Name="Other", Icon="rbxassetid://4483345875", PremiumOnly=false})
+TabOther:AddSection({Name=L.secTeams})
+TabOther:AddToggle({Name=L.espPrisoner, Default=false, Callback=function(v) S.esp.Prisoner=v sfx() end})
+TabOther:AddToggle({Name=L.espFire,     Default=false, Callback=function(v) S.esp.FireDepartment=v sfx() end})
+TabOther:AddToggle({Name=L.espHARS,     Default=false, Callback=function(v) S.esp.HARS=v sfx() end})
+TabOther:AddToggle({Name=L.espTruck,    Default=false, Callback=function(v) S.esp.TruckCompany=v sfx() end})
+
+-- ══ TAB 5 : MISC (AIMBOT) ═══════════════════════════════
+local TabMisc = Window:MakeTab({Name="Misc", Icon="rbxassetid://4483345875", PremiumOnly=false})
+TabMisc:AddSection({Name=L.secAim})
+TabMisc:AddToggle({
+    Name=L.aOn, Default=false,
+    Callback=function(v) S.aimbot=v sfx() Notify(L.aOn, v and L.notifOn or L.notifOff) end,
+})
+TabMisc:AddToggle({
+    Name="Silent Aim", Default=false,
+    Callback=function(v) S.silentAim=v sfx() Notify("Silent Aim", v and L.notifOn or L.notifOff) end,
+})
+TabMisc:AddDropdown({
+    Name    = "Target",
+    Default = "Head",
+    Options = {"Head","Torso","HumanoidRootPart"},
+    Callback= function(v) S.aTarget=v sfx() end,
+})
+TabMisc:AddSlider({Name=L.aFov,  Min=30, Max=700, Default=150, Color=Color3.fromRGB(255,60,60),  Increment=5, Callback=function(v) S.aFov=v end})
+TabMisc:AddSlider({Name=L.aSmth, Min=1,  Max=30,  Default=5,   Color=Color3.fromRGB(52,211,153), Increment=1, Callback=function(v) S.aSmooth=v end})
+TabMisc:AddSlider({Name=L.aPred, Min=0,  Max=30,  Default=0,   Color=Color3.fromRGB(255,200,50), Increment=1, Callback=function(v) S.aPred=v end})
+TabMisc:AddColorpicker({Name=L.aCol, Default=Color3.fromRGB(255,60,60), Callback=function(v) S.aColor=v end})
+
 OrionLib:Init()
 
 task.spawn(function()
@@ -337,68 +388,45 @@ end)
 
 -- ══════════════════════════════════════════════════════════
 --  LOGIQUE : INFINITE STAMINA
---  Méthode fiable sur mobile : hook via le module require
---  + fallback rawset Heartbeat direct sur l'objet stamina
 -- ══════════════════════════════════════════════════════════
 task.spawn(function()
     task.wait(5)
+    local stInstances = {}
 
-    local RS   = game:GetService("ReplicatedStorage")
-    local stObj = nil
-
-    -- Cherche le module CharacterStaminaController
-    local function tryRequire(inst)
-        local ok, res = pcall(require, inst)
-        if not ok then return nil end
-        if type(res) ~= "table" then return nil end
-        local cls = res.CharacterStaminaController
-        if not cls then return nil end
-        return cls
-    end
-
-    local stCls = nil
-    for _, d in ipairs(RS:GetDescendants()) do
-        if d:IsA("ModuleScript") then
-            local cls = tryRequire(d)
-            if cls then stCls = cls break end
-        end
-    end
-
-    if stCls then
-        -- Hook au niveau de la classe (affecte toutes les instances)
-        local origSet = stCls.setStamina
-        local origUse = stCls.useStamina
-
-        if type(origSet) == "function" then
-            stCls.setStamina = function(self, val)
-                if S.infStamina then return origSet(self, 1) end
-                return origSet(self, val)
-            end
-        end
-        if type(origUse) == "function" then
-            stCls.useStamina = function(self, amount)
-                if S.infStamina then return true end
-                return origUse(self, amount)
-            end
-        end
-
-        -- Cherche aussi l'instance live pour rawset
-        pcall(function()
-            for _, v in ipairs(getgc(true)) do
-                if type(v)=="table"
-                and rawget(v,"stamina")~=nil
-                and getmetatable(v)==stCls then
-                    stObj = v break
+    -- Collecte toutes les instances qui ressemblent au controller stamina
+    pcall(function()
+        for _, v in ipairs(getgc(true)) do
+            if type(v) == "table" then
+                local s = rawget(v, "stamina")
+                local h = rawget(v, "hasStaminaBoost")
+                if type(s) == "number" and type(h) == "boolean" then
+                    table.insert(stInstances, v)
+                    -- Hook useStamina sur chaque instance
+                    local origUse = rawget(v, "useStamina") or v.useStamina
+                    if type(origUse) == "function" then
+                        v.useStamina = function(self, amount)
+                            if S.infStamina then return true end
+                            return origUse(self, amount)
+                        end
+                    end
+                    local origSet = rawget(v, "setStamina") or v.setStamina
+                    if type(origSet) == "function" then
+                        v.setStamina = function(self, val)
+                            if S.infStamina then return origSet(self, 1) end
+                            return origSet(self, val)
+                        end
+                    end
                 end
             end
-        end)
-    end
+        end
+    end)
 
-    -- Heartbeat : force stamina = 1 via rawset si instance trouvée
+    -- Heartbeat : force rawset stamina=1 + fallback attribut
     RunService.Heartbeat:Connect(function()
         if not S.infStamina then return end
-        if stObj then
-            pcall(function() rawset(stObj, "stamina", 1) end)
+        -- rawset sur toutes les instances trouvées
+        for _, inst in ipairs(stInstances) do
+            pcall(function() rawset(inst, "stamina", 1) end)
         end
         -- Fallback attribut humanoid
         local char = LP.Character
@@ -406,12 +434,9 @@ task.spawn(function()
         pcall(function()
             local hum = char:FindFirstChildOfClass("Humanoid")
             if not hum then return end
-            for _, a in ipairs({"Stamina","stamina","STAMINA","staminaValue"}) do
-                if hum:GetAttribute(a) ~= nil then
-                    hum:SetAttribute(a, 1)
-                end
+            for _, a in ipairs({"Stamina","stamina","STAMINA"}) do
+                if hum:GetAttribute(a) ~= nil then hum:SetAttribute(a, 1) end
             end
-            -- Parfois stocké dans un ValueBase
             local sv = hum:FindFirstChild("Stamina") or hum:FindFirstChild("stamina")
             if sv and sv:IsA("NumberValue") then sv.Value = 1 end
         end)
@@ -569,10 +594,12 @@ RunService.Heartbeat:Connect(function()
 
         -- ── Highlight ──
         if S.espHL then
-            if not d.hl or not d.hl.Parent then
+            -- Recrée si absent OU si le parent n'est plus le bon char (respawn)
+            if not d.hl or not d.hl.Parent or d.hl.Parent ~= char then
+                if d.hl then pcall(function() d.hl:Destroy() end) end
                 local h = Instance.new("Highlight")
                 h.DepthMode           = Enum.HighlightDepthMode.AlwaysOnTop
-                h.FillTransparency    = 0.48
+                h.FillTransparency    = 0.40
                 h.OutlineTransparency = 0
                 h.Parent              = char
                 d.hl = h
@@ -581,7 +608,7 @@ RunService.Heartbeat:Connect(function()
             d.hl.OutlineColor = col
         else
             if d.hl and d.hl.Parent then d.hl:Destroy() d.hl=nil end
-        end
+                    end
 
         -- ── Tracer + Nom ──
         if hrp then
@@ -615,13 +642,24 @@ RunService.Heartbeat:Connect(function()
 end)
 
 -- ══════════════════════════════════════════════════════════
---  LOGIQUE : AIMBOT  —  FOV Drawing + prédiction + lock tête
+--  LOGIQUE : AIMBOT — FOV + target sélectionnable + silent aim
 -- ══════════════════════════════════════════════════════════
 local fovC = Drawing.new("Circle")
-fovC.NumSides    = 64
-fovC.Thickness   = 1.5
-fovC.Filled      = false
-fovC.Visible     = false
+fovC.NumSides  = 64
+fovC.Thickness = 1.5
+fovC.Filled    = false
+fovC.Visible   = false
+
+-- Trouve la partie cible selon S.aTarget
+local function getTargetPart(char)
+    if S.aTarget == "Head" then
+        return char:FindFirstChild("Head")
+    elseif S.aTarget == "Torso" then
+        return char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso")
+    else
+        return char:FindFirstChild("HumanoidRootPart")
+    end
+end
 
 local function getTarget()
     local vp     = Camera.ViewportSize
@@ -632,33 +670,22 @@ local function getTarget()
         if pl == LP then continue end
         local char = pl.Character
         if not char then continue end
-        local head = char:FindFirstChild("Head")
+        local part = getTargetPart(char)
         local hum  = char:FindFirstChildOfClass("Humanoid")
-        if not head or not hum or hum.Health <= 0 then continue end
+        if not part or not hum or hum.Health <= 0 then continue end
 
-        local sp, os = Camera:WorldToViewportPoint(head.Position)
+        local sp, os = Camera:WorldToViewportPoint(part.Position)
         if not os then continue end
 
         local d = (Vector2.new(sp.X, sp.Y) - center).Magnitude
-        if d < bd then bd=d best={head=head, char=char} end
+        if d < bd then bd=d best={part=part, char=char} end
     end
     return best
 end
 
-RunService.RenderStepped:Connect(function()
-    local vp = Camera.ViewportSize
-    fovC.Visible   = S.aimbot
-    fovC.Radius    = S.aFov
-    fovC.Color     = S.aColor
-    fovC.Position  = Vector2.new(vp.X/2, vp.Y/2)
-
-    if not S.aimbot then return end
-
-    local t = getTarget()
-    if not t then return end
-
-    -- Prédiction de mouvement
-    local pos = t.head.Position
+-- Calcule la position avec prédiction
+local function calcPos(t)
+    local pos = t.part.Position
     if S.aPred > 0 then
         local hrp = t.char:FindFirstChild("HumanoidRootPart")
         if hrp then
@@ -667,10 +694,55 @@ RunService.RenderStepped:Connect(function()
             pos = pos + vel * (dist / 1000) * S.aPred
         end
     end
+    return pos
+end
 
-    local alpha  = math.clamp(1 / math.max(S.aSmooth, 1), 0.01, 1)
-    local target = CFrame.new(Camera.CFrame.Position, pos)
-    pcall(function()
-        Camera.CFrame = Camera.CFrame:Lerp(target, alpha)
-    end)
+-- Silent aim : sauvegarde le CFrame original avant le lock
+local savedCF    = nil
+local isShooting = false
+
+UserInput.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+    or input.UserInputType == Enum.UserInputType.Touch then
+        isShooting = true
+    end
+end)
+UserInput.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+    or input.UserInputType == Enum.UserInputType.Touch then
+        isShooting = false
+        -- Restaure la caméra après le tir (silent aim)
+        if savedCF then
+            pcall(function() Camera.CFrame = savedCF end)
+            savedCF = nil
+        end
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    local vp = Camera.ViewportSize
+    fovC.Visible  = S.aimbot or S.silentAim
+    fovC.Radius   = S.aFov
+    fovC.Color    = S.aColor
+    fovC.Position = Vector2.new(vp.X/2, vp.Y/2)
+
+    if not S.aimbot and not S.silentAim then return end
+
+    local t = getTarget()
+    if not t then return end
+
+    local pos   = calcPos(t)
+    local alpha = math.clamp(1 / math.max(S.aSmooth, 1), 0.01, 1)
+    local goal  = CFrame.new(Camera.CFrame.Position, pos)
+
+    if S.silentAim then
+        -- Silent aim : bouge la caméra SEULEMENT pendant le tir, puis restore
+        if isShooting then
+            if not savedCF then savedCF = Camera.CFrame end
+            pcall(function() Camera.CFrame = Camera.CFrame:Lerp(goal, 1) end)
+        end
+    elseif S.aimbot then
+        -- Aimbot normal : lock continu
+        pcall(function() Camera.CFrame = Camera.CFrame:Lerp(goal, alpha) end)
+    end
 end)
